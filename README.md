@@ -130,7 +130,7 @@ Displays the final research analysis through a clean web interface.
 
 ## 🖥️ Results Page
 
-![AI Research Gap Finder Results](./screenshots/results-page.png)
+![AI Research Gap Finder Results](./results-page.png)
 
 ---
 
