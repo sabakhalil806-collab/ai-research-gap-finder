@@ -43,24 +43,31 @@ The project follows this automation pipeline:
 📝 **Research Paper Abstracts**
 
 ↓
+
 🤖 **Google Gemini**
 
 ↓
+
 🔍 **AI Analysis**
 
 ↓
+
 📊 **Research Gaps**
 
 ↓
+
 💡 **Research Directions**
 
 ↓
+
 📝 **5 Research Titles**
 
 ↓
+
 🏆 **Recommended Title**
 
 ↓
+
 🌐 **Results Page**
 
 ---
