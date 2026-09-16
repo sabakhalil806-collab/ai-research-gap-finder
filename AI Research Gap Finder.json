@@ -1,0 +1,171 @@
+{
+  "name": "AI Research Gap Finder",
+  "nodes": [
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        304,
+        240
+      ],
+      "id": "c9ae7199-081e-43e3-b414-236c3a97a5d5",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "vl6GDhaf4ll91kDb",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "formTitle": "AI Research Gap Finder",
+        "formDescription": "Paste 3 research paper abstracts to identify research gaps and generate new research titles.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Paper 1 Abstract",
+              "fieldType": "textarea",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Paper 2 Abstract",
+              "fieldType": "textarea",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Paper 3 Abstract",
+              "fieldType": "textarea"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        0
+      ],
+      "id": "47d1ab34-da7d-4180-83c8-4581cf2a965a",
+      "name": "On form submission",
+      "webhookId": "83821034-fae5-4eda-ad3c-50ec0e3bb5f5"
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "respondWith": "showText",
+        "responseText": "=<div style=\"font-family: Arial, sans-serif; max-width: 1000px; margin: auto; padding: 30px;\">\n\n<h1 style=\"text-align:center;\">\n🔍 AI Research Gap Finder Results\n</h1>\n\n<p style=\"text-align:center;\">\nAnalysis generated from your 3 research paper abstracts.\n</p>\n\n<div style=\"margin-top:30px; padding:25px; border:1px solid #ddd; border-radius:12px;\">\n\n{{ $json.html }}\n\n</div>\n\n</div>"
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        800,
+        0
+      ],
+      "id": "4d99b714-5152-462c-8f48-253884428e65",
+      "name": "Form",
+      "webhookId": "d27f1e31-2c33-4f3a-b9c0-435b7483b659"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze these three research abstracts and identify the main research gap.\n\nPaper 1:\n{{ $json[\"Paper 1 Abstract\"] }}\n\nPaper 2:\n{{ $json[\"Paper 2 Abstract\"] }}\n\nPaper 3:\n{{ $json[\"Paper 3 Abstract\"] }}",
+        "messages": {
+          "messageValues": [
+            {
+              "type": "AIMessagePromptTemplate",
+              "message": "=You are an academic research assistant.\n\nAnalyze these three research paper abstracts.\n\nPAPER 1:\n{{ $json[\"Paper 1 Abstract\"] }}\n\nPAPER 2:\n{{ $json[\"Paper 2 Abstract\"] }}\n\nPAPER 3:\n{{ $json[\"Paper 3 Abstract\"] }}\n\nDo the following:\n\n1. Summarize the main research topic of each paper.\n2. Identify the methodology used in each paper.\n3. Identify the datasets or study context if mentioned.\n4. Compare the three papers.\n5. Identify limitations and missing areas.\n6. Identify important research gaps.\n7. Suggest research directions that could address those gaps.\n8. Generate exactly 5 new research titles based on the research gaps.\n9. Recommend the best title from the 5 titles.\n10. Explain why the recommended title is the strongest.\n\nReturn the answer in this format:\n\n## Paper Analysis\n\n## Research Gaps\n\n## Research Directions\n\n## 5 New Research Titles\n\n1.\n2.\n3.\n4.\n5.\n\n## Recommended Title\n\n## Reason for Recommendation\n\nDo not invent facts, datasets, results, or findings that are not supported by the abstracts."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        224,
+        0
+      ],
+      "id": "ad548269-5ba5-4eee-b378-38c593f56f1f",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.text || \"\";\n\n// Clean escaped Markdown\nlet text = raw\n  .replace(/\\\\#/g, '#')\n  .replace(/\\\\\\*/g, '*')\n  .replace(/\\\\-/g, '-');\n\n// Escape HTML\ntext = text\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;');\n\n// Convert headings\ntext = text.replace(/^### (.+)$/gm, '<h3>$1</h3>');\ntext = text.replace(/^## (.+)$/gm, '<h2>$1</h2>');\ntext = text.replace(/^# (.+)$/gm, '<h1>$1</h1>');\n\n// Bold\ntext = text.replace(/\\*\\*(.*?)\\*\\*/g, '<strong>$1</strong>');\n\n// Horizontal lines\ntext = text.replace(/^-{3,}$/gm, '<hr>');\n\n// Numbered lists\ntext = text.replace(\n  /^\\d+\\.\\s+(.+)$/gm,\n  '<div class=\"list-item\">$1</div>'\n);\n\n// Bullet points\ntext = text.replace(\n  /^\\*\\s+(.+)$/gm,\n  '<div class=\"bullet-item\">• $1</div>'\n);\n\n// Paragraphs / line breaks\ntext = text.replace(/\\n{2,}/g, '<br><br>');\ntext = text.replace(/\\n/g, '<br>');\n\nconst html = `\n<div style=\"\n  font-family: Arial, sans-serif;\n  max-width: 1100px;\n  margin: 0 auto;\n  color: #222;\n  line-height: 1.7;\n\">\n\n  <div style=\"\n    background: #f5f7fb;\n    padding: 30px;\n    border-radius: 16px;\n    border: 1px solid #e1e5ec;\n  \">\n\n    <div style=\"\n      background:white;\n      padding:30px;\n      border-radius:12px;\n      border:1px solid #e5e5e5;\n    \">\n      ${text}\n    </div>\n\n  </div>\n\n</div>\n`;\n\nreturn [\n  {\n    json: {\n      html: html\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        576,
+        0
+      ],
+      "id": "4daa1475-cbd7-471a-b75e-cee0c4d93ea4",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "274267b0-0e37-4761-863d-2afd424af2e6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4c52a4bd68d09ee02b31455f7b9c9497236582db5cd70536e0f961d3f594279a"
+  },
+  "nodeGroups": [],
+  "id": "EmxgDVJNqqYDPokB",
+  "tags": []
+}
