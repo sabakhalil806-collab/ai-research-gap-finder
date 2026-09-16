@@ -110,7 +110,7 @@ Displays the final research analysis through a clean web interface.
 
 ## 📸 Workflow Canvas
 
-![AI Research Gap Finder Workflow](.workflow-canvas.png)
+![AI Research Gap Finder Workflow](./workflow-canvas.png)
 
 ---
 
